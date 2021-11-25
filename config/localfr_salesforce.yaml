@@ -1,0 +1,7 @@
+localfr_salesforce:
+    client_id: '%env(string:LOCALFR_SALESFORCE_CLIENT_ID)%'
+    client_secret: '%env(string:LOCALFR_SALESFORCE_CLIENT_SECRET)%'
+    private_key: |
+        '%env(string:LOCALFR_SALESFORCE_PRIVATE_KEY)%'
+    public_key: |
+        '%env(string:LOCALFR_SALESFORCE_PUBLIC_KEY)%'
