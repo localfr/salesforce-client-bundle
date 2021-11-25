@@ -1,0 +1,40 @@
+services:
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+
+  Localfr\SalesforceClientBundle\:
+    resource: '../../'
+    exclude:
+      - '../../DependencyInjection/'
+      - '../../Resources/'
+      - '../../Tests/'
+
+  localfr.salesforce.salesforce_provider:
+    class: Localfr\SalesforceClientBundle\Service\Salesforce\AuthProvider\SalesforceProvider
+    public: true
+    arguments:
+      $clientId: '%localfr_salesforce.client_id%'
+      $clientSecret: '%localfr_salesforce.client_secret%'
+      $username: '%localfr_salesforce.username%'
+      $privateKey: '%localfr_salesforce.private_key%'
+      $publicKey: '%localfr_salesforce.public_key%'
+      $sandbox: '%localfr_salesforce.sandbox%'
+  
+  localfr.salesforce.cached_salesforce_provider:
+    class: Localfr\SalesforceClientBundle\Service\Salesforce\AuthProvider\CachedSalesforceProvider
+    public: true
+    arguments:
+      $clientId: '%localfr_salesforce.client_id%'
+      $clientSecret: '%localfr_salesforce.client_secret%'
+      $username: '%localfr_salesforce.username%'
+      $privateKey: '%localfr_salesforce.private_key%'
+      $publicKey: '%localfr_salesforce.public_key%'
+      $sandbox: '%localfr_salesforce.sandbox%'
+
+  localfr.salesforce.client:
+    class: Localfr\SalesforceClientBundle\Service\Salesforce\Client\SalesforceClient
+    public: true
+    arguments:
+      $salesforceProvider: '@localfr.salesforce.cached_salesforce_provider'

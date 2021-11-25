@@ -1,0 +1,4 @@
+localfr_salesforce:
+    client_id: 'client_id'
+    username: 'username'
+    private_key: 'password'
