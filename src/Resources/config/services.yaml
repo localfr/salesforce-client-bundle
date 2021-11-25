@@ -11,6 +11,9 @@ services:
       - '../../Resources/'
       - '../../Tests/'
 
+  localfr.salesforce.serializer:
+    class: Localfr\SalesforceClientBundle\Component\Serializer\SalesforceSerializer
+
   localfr.salesforce.salesforce_provider:
     class: Localfr\SalesforceClientBundle\Service\Salesforce\AuthProvider\SalesforceProvider
     public: true

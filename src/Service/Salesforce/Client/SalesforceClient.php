@@ -2,8 +2,14 @@
 
 namespace Localfr\SalesforceClientBundle\Service\Salesforce\Client;
 
+use Generator;
 use Symfony\Component\HttpClient\Exception\ClientException;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\{HttpClientInterface, ResponseInterface};
+use Localfr\SalesforceClientBundle\Model\{
+    QueryResult,
+    SObject
+};
 use Localfr\SalesforceClientBundle\Service\Salesforce\AuthProvider\SalesforceProviderInterface;
 use UnexpectedValueException;
 
@@ -27,7 +33,7 @@ class SalesforceClient
     /**
      * @var string
      */
-    const QUERY_ENDPOINT = '/query/?q=';
+    const QUERY_ENDPOINT = '/query';
 
     /**
      * @var array
@@ -47,6 +53,11 @@ class SalesforceClient
     private $salesforceProvider;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @var string
      */
     private $apiVersion;
@@ -54,15 +65,18 @@ class SalesforceClient
     /**
      * @param HttpClientInterface $httpClient
      * @param SalesforceProviderInterface $salesforceProvider
+     * @param SerializerInterface $serializer
      * @param string|null $apiVersion
      */
     public function __construct(
         HttpClientInterface $httpClient,
         SalesforceProviderInterface $salesforceProvider,
+        SerializerInterface $serializer,
         ?string $apiVersion = null
     ) {
         $this->httpClient = $httpClient;
         $this->salesforceProvider = $salesforceProvider;
+        $this->serializer = $serializer;
         $this->apiVersion = $apiVersion ?: self::API_VERSION;
     }
 
@@ -73,9 +87,9 @@ class SalesforceClient
      * 
      * @throws ClientException
      * 
-     * @return \stdClass
+     * @return SObject
      */
-    public function get(string $sObjectType, string $id, array $fields = ['Id']): \stdClass
+    public function get(string $sObjectType, string $id, array $fields = ['Id']): SObject
     {
         $url = sprintf(
             '%s/%s/%s?%s',
@@ -99,7 +113,81 @@ class SalesforceClient
                 )
             ]
         );
-        return (object) $this->getParsedResponse($response);
+
+        return $this->serializer->deserialize(
+            $response->getContent(),
+            SObject::class,
+            'json'
+        );
+    }
+
+    /**
+     * @param QueryResult|null $query
+     * 
+     * @return QueryResult
+     */
+    public function query($query): QueryResult
+    {
+        if ($query instanceof QueryResult) {
+            if ($query->isDone()) {
+                return $query;
+            }
+
+            $url = sprintf(
+                '%s%s',
+                $this->salesforceProvider->getInstanceUrl(),
+                $query->getNextRecordsUrl()
+            );
+        } else {
+            $url = sprintf(
+                '%s/?%s',
+                $this->buildQueryUrl(),
+                \http_build_query(
+                    [
+                        'q' => $query
+                    ]
+                )
+            );
+        }
+
+        $response = $this->httpClient->request(
+            'GET',
+            $url,
+            [
+                "headers" => array_merge(
+                    self::DEFAULT_HEADERS,
+                    $this->salesforceProvider->getAuhtorizationHeader()
+                )
+            ]
+        );
+
+        return $this->serializer->deserialize(
+            $response->getContent(),
+            QueryResult::class,
+            'json'
+        );
+    }
+
+    /**
+     * @param string $query
+     * 
+     * @return Generator
+     */
+    public function queryIter(string $query): Generator
+    {
+        $results = $this->query($query);
+        
+        $cnt = 0;
+        while (!$results->isDone()) {
+            $cnt++;
+            var_dump($cnt);
+            /** @var SObject $record */
+            foreach ($results->getRecords() as $record) {
+                yield $record;
+            }
+
+            $results = $this->query($results);
+        }
     }
 
     private function buildSobjectsUrl(): string
