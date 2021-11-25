@@ -5,3 +5,4 @@ localfr_salesforce:
         '%env(string:LOCALFR_SALESFORCE_PRIVATE_KEY)%'
     public_key: |
         '%env(string:LOCALFR_SALESFORCE_PUBLIC_KEY)%'
+    username: '%env(string:LOCALFR_SALESFORCE_USERNAME)%'

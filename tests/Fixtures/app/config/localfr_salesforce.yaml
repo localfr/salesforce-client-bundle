@@ -1,6 +1,7 @@
 localfr_salesforce:
     client_id: 'client_id'
     client_secret: 'client_secret'
+    username: 'username'
     private_key: 'private_key'
     public_key: 'public_key'
     sandbox: true
