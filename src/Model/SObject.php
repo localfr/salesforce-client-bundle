@@ -14,7 +14,9 @@ class SObject
      */
     public function __construct(?array $payload = [])
     {
-        $this->attributes = $payload['attributes'] ?? null;
+        foreach ($payload as $field => $value) {
+            $this->$field = $value;
+        }
     }
 
     /**
@@ -37,42 +39,37 @@ class SObject
     }
 
     /**
-     * @param $name
-     *
-     * @return string
+     * @param string $name
+     * @param mixed $value
      */
-    protected static function normalizeFieldName($name): string
+    public function __set(string $name, mixed $value)
     {
-        return ucwords($name);
-    }
-
-    public function __set($name, $value)
-    {
-        $name = self::normalizeFieldName($name);
         $this->$name = $value;
     }
 
-    public function __get($name)
+    /**
+     * @param string $name
+     * 
+     * @return mixed
+     */
+    public function __get(string $name): mixed
     {
-        $name = self::normalizeFieldName($name);
-        return $this->$name ?: null;
+        return $this->$name ?? null;
     }
 
-    public function __call($name, $arguments)
+    /**
+     * @param string $name
+     * @param array $args
+     * 
+     * @return mixed
+     */
+    public function __call(string $name, array $args): mixed
     {
-        $prefix = substr($name, 0, 3);
-
-        if ("get" === $prefix) {
-            $field = substr($name, 3);
-
-            return $this->$field;
-        }
-
-        if ("set" === $prefix) {
-            $field = substr($name, 3);
-
-            $this->$field = array_shift($arguments);
-
+        $property = substr($name, 3);
+        if ('get' === substr($name, 0, 3)) {
+            return $this->$property ?? null;
+        } elseif ('set' === substr($name, 0, 3)) {
+            $this->$property = $args[0] ?? null;
             return $this;
         }
     }

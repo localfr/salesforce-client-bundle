@@ -58,6 +58,9 @@ class SalesforceSerializer
                 )
             )
         );
+        $propertyAccessor = PropertyAccess::createPropertyAccessorBuilder()
+            ->enableMagicMethods()
+            ->getPropertyAccessor();
         $this->serializer = new Serializer(
             [
                 new ArrayDenormalizer(),
@@ -69,7 +72,7 @@ class SalesforceSerializer
                 new ObjectNormalizer(
                     $classMetadataFactory,
                     null,
-                    PropertyAccess::createPropertyAccessor(),
+                    $propertyAccessor,
                     new ReflectionExtractor(),
                     new ClassDiscriminatorFromClassMetadata($classMetadataFactory),
                 ),

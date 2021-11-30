@@ -84,12 +84,13 @@ class SalesforceClient
      * @param string $sObjectType
      * @param string $id
      * @param array $fields
+     * @param bool $raw
      * 
      * @throws ClientException
      * 
-     * @return SObject
+     * @return SObject|string
      */
-    public function get(string $sObjectType, string $id, array $fields = ['Id']): SObject
+    public function get(string $sObjectType, string $id, array $fields = ['Id'], bool $raw = false): SObject|string
     {
         $url = sprintf(
             '%s/%s/%s?%s',
@@ -114,6 +115,10 @@ class SalesforceClient
             ]
         );
 
+        if ($raw) {
+            return $response->getContent();
+        }
+
         return $this->serializer->deserialize(
             $response->getContent(),
             SObject::class,
@@ -122,11 +127,12 @@ class SalesforceClient
     }
 
     /**
-     * @param QueryResult|null $query
+     * @param QueryResult|string|null $query
+     * @param bool $raw
      * 
      * @return QueryResult
      */
-    public function query($query): QueryResult
+    public function query($query, bool $raw = false): QueryResult
     {
         if ($query instanceof QueryResult) {
             if ($query->isDone()) {
@@ -161,6 +167,10 @@ class SalesforceClient
             ]
         );
 
+        if ($raw) {
+            return $response->getContent();
+        }
+
         return $this->serializer->deserialize(
             $response->getContent(),
             QueryResult::class,
@@ -179,8 +189,6 @@ class SalesforceClient
         
         $cnt = 0;
         while (!$results->isDone()) {
-            $cnt++;
-            var_dump($cnt);
             /** @var SObject $record */
             foreach ($results->getRecords() as $record) {
                 yield $record;
