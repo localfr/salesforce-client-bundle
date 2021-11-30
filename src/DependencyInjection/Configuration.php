@@ -10,8 +10,11 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder('localfr_salesforce');
+        $rootNode = method_exists($treeBuilder, 'getRootNode')
+            ? $treeBuilder->getRootNode()
+            : $treeBuilder->root('localfr_salesforce');
 
-        $treeBuilder->getRootNode()
+        $rootNode
             ->children()
                 ->scalarNode('client_id')->isRequired()->end()
                 ->scalarNode('client_secret')->isRequired()->end()

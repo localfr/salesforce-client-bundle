@@ -38,6 +38,5 @@ services:
 
   localfr.salesforce.client:
     class: Localfr\SalesforceClientBundle\Service\Salesforce\Client\SalesforceClient
-    public: true
-    arguments:
-      $salesforceProvider: '@localfr.salesforce.cached_salesforce_provider'
+  
+  Localfr\SalesforceClientBundle\Service\Salesforce\AuthProvider\SalesforceProviderInterface: '@localfr.salesforce.cached_salesforce_provider'

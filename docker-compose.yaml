@@ -1,0 +1,10 @@
+version: '3.5'
+
+services:
+    ssb-php:
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        container_name: ssb-php-container
+        volumes:
+            - .:/app
