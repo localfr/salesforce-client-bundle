@@ -22,7 +22,7 @@ class QueryResult
     private $nextRecordsUrl;
 
     /**
-     * @var Collection|Sobject[]
+     * @var Collection|SObject[]
      */
     private $records;
 
