@@ -127,12 +127,12 @@ class SalesforceClient
     }
 
     /**
-     * @param QueryResult|string|null $query
+     * @param QueryResult|string $query
      * @param bool $raw
      * 
-     * @return QueryResult
+     * @return QueryResult|string
      */
-    public function query($query, bool $raw = false): QueryResult
+    public function query($query, bool $raw = false)
     {
         if ($query instanceof QueryResult) {
             if ($query->isDone()) {
