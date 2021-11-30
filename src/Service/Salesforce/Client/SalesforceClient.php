@@ -90,7 +90,7 @@ class SalesforceClient
      * 
      * @return SObject|string
      */
-    public function get(string $sObjectType, string $id, array $fields = ['Id'], bool $raw = false): SObject|string
+    public function get(string $sObjectType, string $id, array $fields = ['Id'], bool $raw = false)
     {
         $url = sprintf(
             '%s/%s/%s?%s',
