@@ -187,7 +187,6 @@ class SalesforceClient
     {
         $results = $this->query($query);
         
-        $cnt = 0;
         while (!$results->isDone()) {
             /** @var SObject $record */
             foreach ($results->getRecords() as $record) {
