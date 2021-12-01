@@ -13,7 +13,6 @@ use Localfr\SalesforceClientBundle\Model\{
     SObject
 };
 use Localfr\SalesforceClientBundle\Service\Salesforce\AuthProvider\SalesforceProviderInterface;
-use UnexpectedValueException;
 
 class SalesforceClient
 {
