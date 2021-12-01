@@ -5,8 +5,10 @@ namespace Localfr\SalesforceClientBundle\Service\Salesforce\Client;
 use Generator;
 use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Contracts\HttpClient\{HttpClientInterface, ResponseInterface};
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Localfr\SalesforceClientBundle\Model\{
+    CreateResponse,
     QueryResult,
     SObject
 };
@@ -39,7 +41,8 @@ class SalesforceClient
      * @var array
      */
     const DEFAULT_HEADERS = [
-        "Accept" => "application/json"
+        "Accept" => "application/json",
+        "Content-Type" => "application/json"
     ];
 
     /**
@@ -215,6 +218,89 @@ class SalesforceClient
         }
     }
 
+    /**
+     * @param string $sObjectType
+     * @param SObject $sObject
+     *
+     * @throws ClientException
+     */
+    public function persist(string $sObjectType, SObject $sObject)
+    {
+        $id = $sObject->Id;
+        $method = null !== $id ? 'PATCH' : 'POST';
+        $url = $this->buildSobjectsUrl() . '/' . $sObjectType;
+        if (null !== $id) {
+            $url = $url . '/' . $id;
+        }
+        $sObject->Id = null;
+
+        $body = $this->serializer->serialize(
+            $sObject->getFields(),
+            'json',
+            [ AbstractObjectNormalizer::SKIP_NULL_VALUES => true ]
+        );
+
+        $response = $this->httpClient->request(
+            $method,
+            $url,
+            [
+                "body" => $body,
+                "headers" => array_merge(
+                    self::DEFAULT_HEADERS,
+                    $this->salesforceProvider->getAuhtorizationHeader()
+                )
+            ]
+        );
+
+        if('POST' === $method) {
+            /** @var CreateResponse $createResponse */
+            $createResponse = $this->serializer->deserialize(
+                $response->getContent(),
+                CreateResponse::class,
+                'json'
+            );
+            
+            if ($createResponse->isSuccess()) {
+                $sObject->Id = $createResponse->getId();
+            }
+        } else {
+            $response->getContent();
+            $sObject->Id = $id;
+        }
+    }
+
+    /**
+     * @param string $sObjectType
+     * @param SObject $sObject
+     *
+     * @throws \RuntimeException
+     * @throws ClientException
+     */
+    public function remove(string $sObjectType, SObject $sObject)
+    {
+        if (null === $sObject->Id) {
+            throw new \RuntimeException("The sObject provided does not have an ID set.");
+        }
+
+        $url = $this->buildSobjectsUrl() . '/' . $sObjectType . '/' . $sObject->Id;
+
+        $response = $this->httpClient->request(
+            'DELETE',
+            $url,
+            [
+                "headers" => array_merge(
+                    self::DEFAULT_HEADERS,
+                    $this->salesforceProvider->getAuhtorizationHeader()
+                )
+            ]
+        );
+
+        $response->getContent();
+    }
+
+    /**
+     * @return string
+     */
     private function buildSobjectsUrl(): string
     {
         return sprintf(
@@ -226,6 +312,9 @@ class SalesforceClient
         );
     }
 
+    /**
+     * @return string
+     */
     private function buildQueryUrl(): string
     {
         return sprintf(
@@ -235,87 +324,5 @@ class SalesforceClient
             $this->apiVersion,
             self::QUERY_ENDPOINT
         );
-    }
-
-    /**
-     * Returns the parsed response.
-     *
-     * @param  ResponseInterface $response
-     * @return mixed
-     */
-    public function getParsedResponse(ResponseInterface $response)
-    {
-        return $this->parseResponse($response);
-    }
-
-    /**
-     * Attempts to parse a JSON response.
-     *
-     * @param  string $content JSON content from response body
-     * @return array Parsed JSON data
-     * @throws UnexpectedValueException if the content could not be parsed
-     */
-    protected function parseJson($content)
-    {
-        $content = json_decode($content, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new UnexpectedValueException(sprintf(
-                "Failed to parse JSON response: %s",
-                json_last_error_msg()
-            ));
-        }
-
-        return $content;
-    }
-
-    /**
-     * Returns the content type header of a response.
-     *
-     * @param  ResponseInterface $response
-     * @return string Semi-colon separated join of content-type headers.
-     */
-    protected function getContentType(ResponseInterface $response)
-    {
-        return join(';', $response->getHeaders()['content-type']);
-    }
-
-    /**
-     * Parses the response according to its content-type header.
-     *
-     * @throws UnexpectedValueException
-     * @param  ResponseInterface $response
-     * @return array
-     */
-    protected function parseResponse(ResponseInterface $response)
-    {
-        $content = $response->getContent();
-        $type = $this->getContentType($response);
-
-        if (strpos($type, 'urlencoded') !== false) {
-            parse_str($content, $parsed);
-            return $parsed;
-        }
-
-        // Attempt to parse the string as JSON regardless of content type,
-        // since some providers use non-standard content types. Only throw an
-        // exception if the JSON could not be parsed when it was expected to.
-        try {
-            return $this->parseJson($content);
-        } catch (UnexpectedValueException $e) {
-            if (strpos($type, 'json') !== false) {
-                throw $e;
-            }
-
-            if ($response->getStatusCode() == 500) {
-                throw new UnexpectedValueException(
-                    'Aserver error was encountered that did not contain a JSON body',
-                    0,
-                    $e
-                );
-            }
-
-            return $content;
-        }
     }
 }
