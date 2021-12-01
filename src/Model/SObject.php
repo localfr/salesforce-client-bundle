@@ -2,7 +2,7 @@
 
 namespace Localfr\SalesforceClientBundle\Model;
 
-class SObject
+class SObject extends \stdClass
 {
     /**
      * @var Attributes
@@ -10,13 +10,22 @@ class SObject
     private $attributes;
 
     /**
-     * @param array|null $payload
+     * @var array<string,mixed>
+     */
+    private $fields;
+
+    /**
+     * @param array<string,mixed>|null $payload
      */
     public function __construct(?array $payload = [])
     {
-        foreach ($payload as $field => $value) {
-            $this->$field = $value;
+        $this->attributes = null;
+        if (array_key_exists('attributes', $payload)) {
+            $this->attributes = $payload['attributes'];
+            unset($payload['attributes']);
         }
+        
+        $this->setFields($payload);
     }
 
     /**
@@ -39,12 +48,36 @@ class SObject
     }
 
     /**
+     * @return array<string,mixed>|null
+     */
+    public function getFields(): ?array
+    {
+        return $this->fields;
+    }
+
+    /**
+     * @param array<string,mixed> $fields
+     * 
+     * @return self
+     */
+    public function setFields(array $fields): self
+    {
+        $this->fields = null;
+        foreach ($fields as $field => $value) {
+            $this->fields[$field] = $value;
+        }
+        return $this;
+    }
+
+    
+
+    /**
      * @param string $name
      * @param mixed $value
      */
     public function __set(string $name, mixed $value)
     {
-        $this->$name = $value;
+        $this->fields[$name] = $value;
     }
 
     /**
@@ -54,7 +87,7 @@ class SObject
      */
     public function __get(string $name)
     {
-        return $this->$name ?? null;
+        return $this->fields[$name] ?? null;
     }
 
     /**
@@ -72,5 +105,18 @@ class SObject
             $this->$property = $args[0] ?? null;
             return $this;
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function jsonSerialize(): array
+    {
+        $arr = [];
+        foreach (get_object_vars($this) as $property => $value) {
+            $arr[$property] = $value;
+        }
+
+        return $arr;
     }
 }
