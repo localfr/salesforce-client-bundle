@@ -84,13 +84,32 @@ class SalesforceClient
      * @param string $sObjectType
      * @param string $id
      * @param array $fields
-     * @param bool $raw
      * 
      * @throws ClientException
      * 
-     * @return SObject|string
+     * @return SObject
      */
-    public function get(string $sObjectType, string $id, array $fields = ['Id'], bool $raw = false)
+    public function get(string $sObjectType, string $id, array $fields = ['Id']): SObject
+    {
+        $response = $this->getRaw($sObjectType, $id, $fields);
+
+        return $this->serializer->deserialize(
+            $response,
+            SObject::class,
+            'json'
+        );
+    }
+
+    /**
+     * @param string $sObjectType
+     * @param string $id
+     * @param array $fields
+     * 
+     * @throws ClientException
+     * 
+     * @return string
+     */
+    public function getRaw(string $sObjectType, string $id, array $fields = ['Id']): string
     {
         $url = sprintf(
             '%s/%s/%s?%s',
@@ -115,24 +134,31 @@ class SalesforceClient
             ]
         );
 
-        if ($raw) {
-            return $response->getContent();
-        }
+        return $response->getContent();
+    }
+
+    /**
+     * @param QueryResult|string $query
+     * 
+     * @return QueryResult
+     */
+    public function query($query): QueryResult
+    {
+        $response = $this->queryRaw($query);
 
         return $this->serializer->deserialize(
-            $response->getContent(),
-            SObject::class,
+            $response,
+            QueryResult::class,
             'json'
         );
     }
 
     /**
      * @param QueryResult|string $query
-     * @param bool $raw
      * 
-     * @return QueryResult|string
+     * @return string
      */
-    public function query($query, bool $raw = false)
+    public function queryRaw($query): string
     {
         if ($query instanceof QueryResult) {
             if ($query->isDone()) {
@@ -167,15 +193,7 @@ class SalesforceClient
             ]
         );
 
-        if ($raw) {
-            return $response->getContent();
-        }
-
-        return $this->serializer->deserialize(
-            $response->getContent(),
-            QueryResult::class,
-            'json'
-        );
+        return $response->getContent();
     }
 
     /**
