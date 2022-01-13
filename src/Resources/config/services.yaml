@@ -36,6 +36,10 @@ services:
       $publicKey: '%localfr_salesforce.public_key%'
       $sandbox: '%localfr_salesforce.sandbox%'
 
+  Localfr\SalesforceClientBundle\Service\Salesforce\Client\SalesforceClient:
+    arguments:
+      $apiVersion: '%localfr_salesforce.api_version%'
+
   localfr.salesforce.client:
     class: Localfr\SalesforceClientBundle\Service\Salesforce\Client\SalesforceClient
     arguments:
