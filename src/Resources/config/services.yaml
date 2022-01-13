@@ -38,5 +38,7 @@ services:
 
   localfr.salesforce.client:
     class: Localfr\SalesforceClientBundle\Service\Salesforce\Client\SalesforceClient
+    arguments:
+      $apiVersion: '%localfr_salesforce.api_version%'
   
   Localfr\SalesforceClientBundle\Service\Salesforce\AuthProvider\SalesforceProviderInterface: '@localfr.salesforce.cached_salesforce_provider'

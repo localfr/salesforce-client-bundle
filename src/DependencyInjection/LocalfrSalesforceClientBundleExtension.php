@@ -38,5 +38,6 @@ class LocalfrSalesforceClientBundleExtension extends Extension
         $container->setParameter('localfr_salesforce.private_key', $config['private_key']);
         $container->setParameter('localfr_salesforce.public_key', $config['public_key']);
         $container->setParameter('localfr_salesforce.sandbox', $config['sandbox']);
+        $container->setParameter('localfr_salesforce.api_version', $config['api_version']);
     }
 }

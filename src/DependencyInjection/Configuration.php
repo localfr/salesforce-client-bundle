@@ -22,6 +22,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('private_key')->isRequired()->end()
                 ->scalarNode('public_key')->isRequired()->end()
                 ->booleanNode('sandbox')->defaultFalse()->end()
+                ->scalarNode('api_version')->defaultValue('v52.0')->end()
             ->end()
         ;
 
