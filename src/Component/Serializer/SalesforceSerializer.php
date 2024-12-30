@@ -3,7 +3,7 @@
 namespace Localfr\SalesforceClientBundle\Component\Serializer;
 
 use Doctrine\Common\Annotations\{AnnotationReader, PsrCachedReader};
-use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -35,7 +35,7 @@ use Symfony\Component\Serializer\{Serializer, SerializerInterface};
 class SalesforceSerializer
 {
     /**
-     * @var AdapterInterface $annotationsCacheAdapter
+     * @var CacheItemPoolInterface $annotationsCacheAdapter
      */
     private $annotationsCacheAdapter;
 
@@ -45,9 +45,9 @@ class SalesforceSerializer
     private $serializer;
 
     /**
-     * @param AdapterInterface $annotationsCacheAdapter
+     * @param CacheItemPoolInterface $annotationsCacheAdapter
      */
-    public function __construct(AdapterInterface $annotationsCacheAdapter)
+    public function __construct(CacheItemPoolInterface $annotationsCacheAdapter)
     {
         $this->annotationsCacheAdapter = $annotationsCacheAdapter;
         $classMetadataFactory = new ClassMetadataFactory(

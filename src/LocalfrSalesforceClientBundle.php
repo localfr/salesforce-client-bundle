@@ -2,6 +2,7 @@
 
 namespace Localfr\SalesforceClientBundle;
 
+use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Localfr\SalesforceClientBundle\DependencyInjection\LocalfrSalesforceClientBundleExtension;
 
@@ -12,7 +13,7 @@ class LocalfrSalesforceClientBundle extends Bundle
      *
      * @return LocalfrSalesforceClientBundleExtension
      */
-    public function getContainerExtension()
+    public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
             $this->extension = new LocalfrSalesforceClientBundleExtension();
